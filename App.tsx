@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Text, View, Button } from "react-native";
+import { View, StyleSheet, ScrollView, Text } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
 import { Especialidade } from "./src/types/especialidade";
 import { Paciente } from "./src/types/paciente";
 import { Medico } from "./src/interfaces/medico";
 import { Consulta } from "./src/interfaces/consulta";
+
+import { ConsultaCard } from "./src/components";
 
 export default function App() {
   const cardiologia: Especialidade = {
@@ -46,26 +49,55 @@ export default function App() {
     });
   }
 
-  function formatarValor(valor: number): string {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+  function cancelarConsulta() {
+    setConsulta({
+      ...consulta,
+      status: "cancelada",
     });
   }
 
-  function formatarData(data: Date): string {
-    return data.toLocaleDateString("pt-BR");
-  }
-
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Médico: {consulta.medico.nome}</Text>
-      <Text>Paciente: {consulta.paciente.nome}</Text>
-      <Text>Data: {formatarData(consulta.data)}</Text>
-      <Text>Valor: {formatarValor(consulta.valor)}</Text>
-      <Text>Status: {consulta.status}</Text>
+    <View style={styles.container}>
+      <StatusBar style="light" />
 
-      <Button title="Confirmar" onPress={confirmarConsulta} />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.titulo}>Sistema de Consultas</Text>
+          <Text style={styles.subtitulo}>Consulta #{consulta.id}</Text>
+        </View>
+
+        <ConsultaCard
+          consulta={consulta}
+          onConfirmar={confirmarConsulta}
+          onCancelar={cancelarConsulta}
+        />
+      </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#79059C",
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 60,
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  titulo: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 8,
+  },
+  subtitulo: {
+    fontSize: 18,
+    color: "#fff",
+    opacity: 0.9,
+  },
+});
