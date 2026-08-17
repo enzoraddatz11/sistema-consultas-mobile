@@ -1,214 +1,324 @@
+import React from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
+
+// Importamos a interface Consulta que criamos na aula passada
+// Ela vem de src/interfaces/ porque é usada em VÁRIOS lugares
 import { Consulta } from "../interfaces/consulta";
 
 type ConsultaCardProps = {
-  consulta: Consulta;
-  onConfirmar?: () => void;
-  onCancelar?: () => void;
+ // A consulta que queremos exibir (OBRIGATÓRIA)
+ consulta: Consulta;
+
+ // Função chamada quando o usuário clica em "Confirmar" (OPCIONAL)
+ // Por que opcional? Às vezes queremos só exibir, sem botões de ação!
+ onConfirmar?: () => void;
+
+ // Função chamada quando o usuário clica em "Cancelar" (OPCIONAL)
+ onCancelar?: () => void;
 };
 
+/**
+ * =============================================================================
+ * COMPONENTE PRINCIPAL
+ * =============================================================================
+ *
+ * Aqui usamos destructuring nas props - é uma técnica moderna do JavaScript
+ *
+ * Em vez de: function ConsultaCard(props) { const consulta = props.consulta; }
+ * Fazemos: function ConsultaCard({ consulta, onConfirmar, onCancelar })
+ *
+ * Fica mais limpo e direto!
+ *
+ * =============================================================================
+ */
 export default function ConsultaCard({
-  consulta,
-  onConfirmar,
-  onCancelar,
+ consulta,
+ onConfirmar,
+ onCancelar,
 }: ConsultaCardProps) {
-  function formatarValor(valor: number): string {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  }
 
-  // Formata uma string ISO do backend no padrão brasileiro (25/03/2026 às 09:00)
-  function formatarData(dataHora: string): string {
-    const data = new Date(dataHora);
-    const dia = data.toLocaleDateString("pt-BR");
-    const hora = data.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return `${dia} às ${hora}`;
-  }
+ /**
+ * ===========================================================================
+ * FUNÇÕES AUXILIARES (LOCAIS DO COMPONENTE)
+ * ===========================================================================
+ *
+ * Estas funções existem APENAS para ajudar este componente.
+ * Por isso ficam aqui dentro, não precisam estar em outro arquivo.
+ *
+ * Se fossem usadas em vários componentes, criaríamos:
+ * src/utils/formatadores.ts
+ *
+ * ===========================================================================
+ */
 
-  return (
-    <View style={styles.card}>
-      <View
-        style={[
-          styles.statusBadge,
-          consulta.status === "confirmada" && styles.statusConfirmada,
-          consulta.status === "cancelada" && styles.statusCancelada,
-        ]}
-      >
-        <Text style={styles.statusTexto}>{consulta.status.toUpperCase()}</Text>
-      </View>
+ // Formata um número para moeda brasileira (R$ 150,00)
+ function formatarValor(valor: number): string {
+ return valor.toLocaleString("pt-BR", {
+ style: "currency",
+ currency: "BRL",
+ });
+ }
 
-      <View style={styles.secao}>
-        <Text style={styles.label}>👨‍⚕️ Médico</Text>
-        <Text style={styles.valor}>{consulta.medico.nome}</Text>
-        <Text style={styles.info}>CRM: {consulta.medico.crm}</Text>
-        <Text style={styles.info}>{consulta.medico.especialidade.nome}</Text>
-      </View>
+ // Formata uma string ISO do backend no padrão brasileiro (25/03/2026 às 09:00)
+ function formatarData(dataHora: string): string {
+ const data = new Date(dataHora);
+ const dia = data.toLocaleDateString("pt-BR");
+ const hora = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+ return `${dia} às ${hora}`;
+ }
 
-      <View style={styles.secao}>
-        <Text style={styles.label}>👤 Paciente</Text>
-        <Text style={styles.valor}>{consulta.paciente.nome}</Text>
-        <Text style={styles.info}>CPF: {consulta.paciente.cpf}</Text>
-        <Text style={styles.info}>Email: {consulta.paciente.email}</Text>
+ return (
+ <View style={styles.card}>
 
-        {consulta.paciente.telefone && (
-          <Text style={styles.info}>Tel: {consulta.paciente.telefone}</Text>
-        )}
-      </View>
+ {/*
+ -----------------------------------------------------------------------
+ BADGE DO STATUS
+ -----------------------------------------------------------------------
+ Renderização condicional de estilos!
 
-      <View style={styles.secao}>
-        <Text style={styles.label}>📅 Dados da Consulta</Text>
-        <Text style={styles.valor}>Data: {formatarData(consulta.dataHora)}</Text>
-        <Text style={styles.valor}>Valor: {formatarValor(consulta.valor)}</Text>
+ Se status === "confirmada" → aplica styles.statusConfirmada (verde)
+ Se status === "cancelada" → aplica styles.statusCancelada (vermelho)
+ Se status === "agendada" → só o estilo padrão (roxo)
+ -----------------------------------------------------------------------
+ */}
+ <View
+ style={[
+ styles.statusBadge,
+ consulta.status === "confirmada" && styles.statusConfirmada,
+ consulta.status === "cancelada" && styles.statusCancelada,
+ ]}
+ >
+ <Text style={styles.statusTexto}>
+ {consulta.status.toUpperCase()}
+ </Text>
+ </View>
 
-        {consulta.observacoes && (
-          <Text style={styles.observacoes}>{consulta.observacoes}</Text>
-        )}
-      </View>
+ {/*
+ -----------------------------------------------------------------------
+ SEÇÃO: MÉDICO
+ -----------------------------------------------------------------------
+ Exibimos todas as informações do médico.
+ Repare que acessamos: consulta.medico.nome, consulta.medico.crm, etc.
+ Isso funciona porque tipamos tudo com TypeScript!
+ -----------------------------------------------------------------------
+ */}
+ <View style={styles.secao}>
+ <Text style={styles.label}>👨‍⚕️ Médico</Text>
+ <Text style={styles.valor}>{consulta.medico.nome}</Text>
+ <Text style={styles.info}>CRM: {consulta.medico.crm}</Text>
+ <Text style={styles.info}>{consulta.medico.especialidade.nome}</Text>
+ </View>
 
-      <View style={styles.acoes}>
-        {consulta.status === "agendada" && (
-          <>
-            {onConfirmar && (
-              <View style={styles.botaoContainer}>
-                <Button
-                  title="Confirmar Consulta"
-                  onPress={onConfirmar}
-                  color="#4CAF50"
-                />
-              </View>
-            )}
+ {/*
+ -----------------------------------------------------------------------
+ SEÇÃO: PACIENTE
+ -----------------------------------------------------------------------
+ Repare que telefone é OPCIONAL na interface Paciente!
+ Se não existir, não renderizamos nada.
+ Isso é renderização condicional baseada em dados opcionais.
+ -----------------------------------------------------------------------
+ */}
+ <View style={styles.secao}>
+ <Text style={styles.label}>👤 Paciente</Text>
+ <Text style={styles.valor}>{consulta.paciente.nome}</Text>
+ <Text style={styles.info}>CPF: {consulta.paciente.cpf}</Text>
+ <Text style={styles.info}>Email: {consulta.paciente.email}</Text>
+ {consulta.paciente.telefone && (
+ <Text style={styles.info}>Tel: {consulta.paciente.telefone}</Text>
+ )}
+ </View>
 
-            {onCancelar && (
-              <View style={styles.botaoContainer}>
-                <Button
-                  title="Cancelar Consulta"
-                  onPress={onCancelar}
-                  color="#F44336"
-                />
-              </View>
-            )}
-          </>
-        )}
+ {/*
+ -----------------------------------------------------------------------
+ SEÇÃO: DADOS DA CONSULTA
+ -----------------------------------------------------------------------
+ Aqui usamos as funções auxiliares formatarData() e formatarValor()
 
-        {consulta.status === "confirmada" && (
-          <View style={styles.mensagem}>
-            <Text style={styles.mensagemTexto}>
-              ✓ Consulta confirmada com sucesso!
-            </Text>
-          </View>
-        )}
+ Em vez de:
+ <Text>{consulta.data.toLocaleDateString("pt-BR")}</Text>
 
-        {consulta.status === "cancelada" && (
-          <View style={styles.mensagemCancelada}>
-            <Text style={styles.mensagemTexto}>✗ Consulta cancelada</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
+ Fazemos:
+ <Text>{formatarData(consulta.data)}</Text>
+
+ Fica mais legível e fácil de manter!
+ -----------------------------------------------------------------------
+ */}
+ <View style={styles.secao}>
+ <Text style={styles.label}>📅 Dados da Consulta</Text>
+ <Text style={styles.valor}>Data: {formatarData(consulta.dataHora)}</Text>
+ <Text style={styles.valor}>
+ Valor: {formatarValor(consulta.valor)}
+ </Text>
+ {consulta.observacoes && (
+ <Text style={styles.observacoes}>{consulta.observacoes}</Text>
+ )}
+ </View>
+
+ {/*
+ -----------------------------------------------------------------------
+ BOTÕES DE AÇÃO (PROPS OPCIONAIS + CALLBACKS)
+ -----------------------------------------------------------------------
+ CONCEITO MUITO IMPORTANTE!
+
+ Este componente NÃO gerencia o estado da consulta.
+ Quem gerencia é o componente PAI (App.tsx).
+
+ Renderização condicional em DOIS níveis:
+ Nível 1: consulta.status === "agendada"
+ → Só mostra botões se a consulta ainda estiver agendada
+
+ Nível 2: onConfirmar && <Botao>
+ → Só mostra o botão se a prop foi passada
+ -----------------------------------------------------------------------
+ */}
+ <View style={styles.acoes}>
+ {consulta.status === "agendada" && (
+ <>
+ {onConfirmar && (
+ <View style={styles.botaoContainer}>
+ <Button
+ title="Confirmar Consulta"
+ onPress={onConfirmar}
+ color="#4CAF50"
+ />
+ </View>
+ )}
+ {onCancelar && (
+ <View style={styles.botaoContainer}>
+ <Button
+ title="Cancelar Consulta"
+ onPress={onCancelar}
+ color="#F44336"
+ />
+ </View>
+ )}
+ </>
+ )}
+
+ {consulta.status === "confirmada" && (
+ <View style={styles.mensagem}>
+ <Text style={styles.mensagemTexto}>
+ ✓ Consulta confirmada com sucesso!
+ </Text>
+ </View>
+ )}
+
+ {consulta.status === "cancelada" && (
+ <View style={styles.mensagemCancelada}>
+ <Text style={styles.mensagemTexto}>✗ Consulta cancelada</Text>
+ </View>
+ )}
+ </View>
+ </View>
+ );
 }
 
+
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
+ // Container principal do card
+ card: {
+ backgroundColor: "#fff",
+ borderRadius: 16,
+ padding: 20,
+ // Sombra no iOS
+ shadowColor: "#000",
+ shadowOffset: { width: 0, height: 4 },
+ shadowOpacity: 0.2,
+ shadowRadius: 8,
+ // Sombra no Android
+ elevation: 5,
+ },
 
-  statusBadge: {
-    backgroundColor: "#FFA500",
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
+ // Badge de status (agendada, confirmada, cancelada)
+ statusBadge: {
+ backgroundColor: "#FFA500", // Laranja (padrão para "agendada")
+ alignSelf: "flex-start",
+ paddingHorizontal: 16,
+ paddingVertical: 8,
+ borderRadius: 20,
+ marginBottom: 20,
+ },
+ statusConfirmada: {
+ backgroundColor: "#4CAF50", // Verde
+ },
+ statusCancelada: {
+ backgroundColor: "#F44336", // Vermelho
+ },
+ statusTexto: {
+ color: "#fff",
+ fontWeight: "bold",
+ fontSize: 12,
+ },
 
-  statusConfirmada: {
-    backgroundColor: "#4CAF50",
-  },
+ // Seções do card (médico, paciente, dados)
+ secao: {
+ marginBottom: 20,
+ paddingBottom: 20,
+ borderBottomWidth: 1,
+ borderBottomColor: "#e0e0e0",
+ },
 
-  statusCancelada: {
-    backgroundColor: "#F44336",
-  },
+ // Labels das seções (👨‍⚕️ Médico, 👤 Paciente, etc)
+ label: {
+ fontSize: 16,
+ fontWeight: "bold",
+ color: "#79059C",
+ marginBottom: 8,
+ },
 
-  statusTexto: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
+ // Valores exibidos (nome do médico, nome do paciente, etc)
+ valor: {
+ fontSize: 18,
+ color: "#333",
+ marginBottom: 4,
+ },
 
-  secao: {
-    marginBottom: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
+ // Informações complementares (CRM, CPF, email, etc)
+ info: {
+ fontSize: 14,
+ color: "#666",
+ marginBottom: 2,
+ },
 
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#79059C",
-    marginBottom: 8,
-  },
+ // Observações (texto em itálico)
+ observacoes: {
+ fontSize: 14,
+ color: "#555",
+ fontStyle: "italic",
+ marginTop: 8,
+ },
 
-  valor: {
-    fontSize: 18,
-    color: "#333",
-    marginBottom: 4,
-  },
+ // Container das ações (botões e mensagens)
+ acoes: {
+ marginTop: 10,
+ },
 
-  info: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 2,
-  },
+ // Espaçamento entre botões
+ botaoContainer: {
+ marginBottom: 12,
+ },
 
-  observacoes: {
-    fontSize: 14,
-    color: "#555",
-    fontStyle: "italic",
-    marginTop: 8,
-  },
+ // Mensagem de sucesso (verde)
+ mensagem: {
+ backgroundColor: "#E8F5E9",
+ padding: 16,
+ borderRadius: 8,
+ borderLeftWidth: 4,
+ borderLeftColor: "#4CAF50",
+ },
 
-  acoes: {
-    marginTop: 10,
-  },
-
-  botaoContainer: {
-    marginBottom: 12,
-  },
-
-  mensagem: {
-    backgroundColor: "#E8F5E9",
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: "#4CAF50",
-  },
-
-  mensagemCancelada: {
-    backgroundColor: "#FFEBEE",
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: "#F44336",
-  },
-
-  mensagemTexto: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "600",
-    textAlign: "center",
-  },
+ // Mensagem de cancelamento (vermelho)
+ mensagemCancelada: {
+ backgroundColor: "#FFEBEE",
+ padding: 16,
+ borderRadius: 8,
+ borderLeftWidth: 4,
+ borderLeftColor: "#F44336",
+ },
+ mensagemTexto: {
+ fontSize: 16,
+ color: "#333",
+ fontWeight: "600",
+ textAlign: "center",
+ },
 });
